@@ -24,7 +24,7 @@ namespace Medicine
         }
         static void Main(string[] args)
         {
-
+            TestMedFunctional();
         }
     }
 }
