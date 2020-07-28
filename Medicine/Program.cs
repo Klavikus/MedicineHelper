@@ -36,6 +36,16 @@ namespace Medicine
             CourseDistributer distributedCourse = new CourseDistributer(medCourse);
 
             distributedCourse.PrintInfo();
+
+            /*
+             * TODO:
+             * 1. Реализовать проверку корректности ввода информации, 
+             * при создании экземпляров Med, MedCourse, CourseDistributer.
+             * 2. Добавить привязку распределения курса к определённой дате.
+             * 3. Добавить возможность проверки\хранения статуса выполнения курса.
+             * 4. Добавить поддержку работы с БД.
+             * 5. Добавить возможность обновления проверочных списков.
+             */
         }
 
         static void Main(string[] args)
