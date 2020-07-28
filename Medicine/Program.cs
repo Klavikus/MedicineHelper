@@ -13,16 +13,29 @@ namespace Medicine
     {
         static void TestMedFunctional()
         {
-            Med pred2 = new Med("оциллококцинум", 30, "таб", 1, 120);
-            Console.WriteLine(pred2.GetInfo());
-            MedCourse preCourse2 = new MedCourse(
-                pred2, 18,
-                new Dictionary<float, float>() { { 8, 9 }, { 10, 5 }, { 11, 4 } },
-                14,
-                new int[] { 0 });
+            Med med = new Med();
 
-            CourseDistributer distrCourse2 = new CourseDistributer(preCourse2);
-            distrCourse2.PrintInfo();
+            med.Name = "оциллококцинум";
+            med.MinDoseCapacity = 30;
+            med.DoseUnit = "таб";
+            med.MinDose = 1;
+            med.Price = 120;
+            med.GetMedInfo();
+
+            Console.WriteLine(med.GetInfo());
+
+            MedCourse medCourse = new MedCourse();
+
+            medCourse.Medicine = med;
+            medCourse.DayDose = 18;
+            medCourse.DayDoseDistr = new Dictionary<double, double>() { { 8, 9 }, { 10, 5 }, { 11, 4 } };
+            medCourse.CourseDayInterval = 14;
+            medCourse.CourseDayPattern = new int[] { 0 };
+            medCourse.CalculateCourse();
+
+            CourseDistributer distributedCourse = new CourseDistributer(medCourse);
+
+            distributedCourse.PrintInfo();
         }
 
         static void Main(string[] args)

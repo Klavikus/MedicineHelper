@@ -21,13 +21,29 @@ namespace Medicine
     /// </summary>
     public class CourseDistributer
     {
+        /// <summary>
+        /// Статус нахождения в расстрельном списке и списке жизненно необходимых препаратов.
+        /// </summary>
         public bool[] MedStatus { get; private set; }
+
+        /// <summary>
+        /// Курс препарата.
+        /// </summary>
         public MedCourse Course { get; private set;}
+        
+        /// <summary>
+        /// Конструктор распределения курса.
+        /// </summary>
+        /// <param name="medCourse">Курс препарата.</param>
         public CourseDistributer(MedCourse medCourse)
         {
             Course = medCourse;
             MedStatus = TestName(medCourse.Medicine.Name);
         }
+
+        /// <summary>
+        /// Тестовый метод вывода основной информации, по сформированному распределению курса.
+        /// </summary>
         public void PrintInfo()
         {
             Console.WriteLine($"Курс препарата \"{Course.Medicine.Name}\"");
@@ -71,7 +87,6 @@ namespace Medicine
                 return new bool[] { false, false };
             }
         }
-
     }
 
     /// <summary>
@@ -79,34 +94,57 @@ namespace Medicine
     /// </summary>
     public class MedCourse
     {
-        public Med Medicine { get; private set; }
-        public float DayDose { get; private set; }
-        public Dictionary<float, float> DayDoseDistr { get; private set; }
-        public Dictionary<float, float> Dose { get; private set; }
-        public int CourseDayInterval { get; private set; }
-        public int[] CourseDayPattern { get; private set; }
-        public Dictionary<int, Dictionary<float, float>> CourseDayDistribution { get; private set; }
-        public MedCourse(Med medicine, 
-                         float dayDose, 
-                         Dictionary<float, float> dayDoseDistr, 
-                         int courseDayInterval, 
-                         int[] courseDayPattern)
+        /// <summary>
+        /// Препарат.
+        /// </summary>
+        public Med Medicine { get; set; }
+
+        /// <summary>
+        /// Необходимая дневная доза препарата.
+        /// </summary>
+        public float DayDose { get; set; }
+
+        /// <summary>
+        /// Распределение дозы в течении суток ("Время приёма":"Кол-во минимальных дозах")
+        /// </summary>
+        public Dictionary<double, double> DayDoseDistr { get; set; }
+
+        /// <summary>
+        /// Распределение дозы в течении суток ("Время приёма":"Кол-во в минимальных дозах")
+        /// </summary>
+        public Dictionary<double, double> Dose { get; set; }
+
+        /// <summary>
+        /// Длительность курса в днях.
+        /// </summary>
+        public int CourseDayInterval { get; set; }
+
+        /// <summary>
+        /// Распределение приёма по дням, если int[].length > 1, то и я вляется CourseDayDistribution
+        /// </summary>
+        public int[] CourseDayPattern { get; set; }
+
+        /// <summary>
+        /// Распределение дневных доз, по рассчитаным дням приёма.
+        /// </summary>
+        public Dictionary<int, Dictionary<double, double>> CourseDayDistribution { get; private set; }
+
+        /// <summary>
+        /// Начальная инициализация объекта класса, требует выполнение метода CalculateCourse().
+        /// </summary>
+        public MedCourse()
         {
-            this.Medicine = medicine;
-            this.DayDose = dayDose;
-            this.DayDoseDistr = dayDoseDistr;
-            this.CourseDayInterval = courseDayInterval;
-            this.CourseDayPattern = courseDayPattern;
-            this.CourseDayDistribution = new Dictionary<int, Dictionary<float, float>>();
-            this.CalculateDayDose();
-            this.DistribDoseByDay();
+            this.Medicine = new Med();
+            this.DayDose = 0;
+            this.DayDoseDistr = new Dictionary<double, double>();
+            this.CourseDayInterval = 0;
+            this.CourseDayPattern = new int[] { };
+            this.CourseDayDistribution = new Dictionary<int, Dictionary<double, double>>();
         }
 
         /// <summary>
         /// Возвращает массив дней приёма препарата.
         /// </summary>        
-        /// <param name="seq">последовательность приёма препарата</param>
-        /// <param name="dayCount">длительность курса</param>
         private int[] DistribSeqByDay()
         {   
             
@@ -129,15 +167,22 @@ namespace Medicine
 
             return result.ToArray();
         }
+
+        /// <summary>
+        /// формирование распределения дневных доз, по рассчитаным дням приёма.
+        /// </summary>
         private void DistribDoseByDay()
         {
-            //Console.WriteLine(string.Join(" ", DistribSeqByDay()));
             foreach (var day in DistribSeqByDay())
                 this.CourseDayDistribution.Add(day, this.Dose);
         }
+
+        /// <summary>
+        /// Формирование распределения дневной дозы в течении дня.
+        /// </summary>
         private void CalculateDayDose()
         {
-            var tempDict = new Dictionary<float, float>();
+            var tempDict = new Dictionary<double, double>();
             foreach (var dose in DayDoseDistr)
             {
                 tempDict.Add(dose.Key, dose.Value);
@@ -145,6 +190,14 @@ namespace Medicine
             Dose = tempDict;
         }
 
+        /// <summary>
+        /// Завершение конструирования модели курса.
+        /// </summary>
+        public void CalculateCourse()
+        {
+            this.CalculateDayDose();
+            this.DistribDoseByDay();
+        }
     }
 
     /// <summary>
@@ -155,23 +208,23 @@ namespace Medicine
         /// <summary>
         /// Название препарата.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; set; }
         /// <summary>
         /// Стоимость препарата в рублях.
         /// </summary>
-        public float Price{ get; private set; }
+        public double Price{ get; set; }
         /// <summary>
         /// Единицы дозирования (мг/таб/т.д.)
         /// </summary>
-        public string DoseUnit { get; private set; }
+        public string DoseUnit { get; set; }
         /// <summary>
         /// Минимальная расфасованная доза.
         /// </summary>
-        public float MinDose{ get; private set; }
+        public double MinDose { get; set; }
         /// <summary>
         /// Ёмкость упаковки в минимальных дозах.
         /// </summary>
-        public float MinDoseCapacity{ get; private set; }
+        public double MinDoseCapacity { get; set; }
 
         /// <summary>
         /// Торговое наименование препарата.
@@ -201,19 +254,18 @@ namespace Medicine
         /// <param name="doseUnit">Единицы дозирования (мг/таб/т.д.)</param>
         /// <param name="minDose">Минимальная расфасованная доза.</param>
         /// <param name="minDoseCapacity">Ёмкость упаковки в минимальных дозах.</param>
-        public Med(string name, float price, string doseUnit, float minDose, float minDoseCapacity)
+        public Med()
         {
-            Name = name;
-            Price = price;
-            DoseUnit = doseUnit;
-            MinDose = minDose;
-            MinDoseCapacity = minDoseCapacity;
+            Name = string.Empty;
+            Price = 0;
+            DoseUnit = string.Empty;
+            MinDose = 0;
+            MinDoseCapacity = 0;
 
             TradeNameGroup = new List<string>();
             ActiveIngridients = new List<string>();
             PharmaGroup = new List<string>();
             Nosological = new List<string>();
-            GetMedInfo();
         }
 
         /// <summary>
@@ -248,7 +300,7 @@ namespace Medicine
         /// <summary>
         /// Собирает основные данные препарата, используя сайт www.rlsnet.ru.
         /// </summary
-        void GetMedInfo()
+        public void GetMedInfo()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Encoding encoding = Encoding.GetEncoding("Windows-1251");
