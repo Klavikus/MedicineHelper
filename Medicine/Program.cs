@@ -44,70 +44,46 @@ namespace Medicine
 
             var uriName = string.Join("", encoding.GetBytes(name).Select(c => Uri.HexEscape((char)c)));
 
-            Console.WriteLine(uriName);
-
             var url = $"https://www.rlsnet.ru/search_result.htm?word={uriName}";
-           
+
             var req = GetHtml(url);
-            
-           // Console.WriteLine(req);
 
             bool reqOk = Regex.Match(req, $"<div class=\"search_page_head\">", RegexOptions.IgnoreCase).Success;
 
+            var tradeNameGroup = new List<string>();
+            var activeIngridients = new List<string>();
+            var pharmaGroup = new List<string>();
+            var nosological = new List<string>();
 
-            var farmG = new List<string>();
 
-            Console.WriteLine(reqOk);
+           
             if (reqOk)
             {
-                string regPattern1 = "в фармакологических группах([\\s\\S])*?(?=в нозологическом указателе)";
-                Match farmGroups = Regex.Match(req, regPattern1, RegexOptions.IgnoreCase);
-                
-             //   Console.WriteLine(Regex.Unescape(req));
-                if (farmGroups.Success)
-                {
-                    //Console.WriteLine(farmGroups.Groups[0].Value);
-                    File.WriteAllText("reg.txt", farmGroups.Groups[0].Value);
+                var pharmaGroupPattern1 = "в фармакологических группах([\\s\\S])*?(?=в нозологическом указателе)";
+                var pharmaGroupPattern2 = "(.htm\\\">)([\\s\\S]*?)(?=(<\\/a))";
 
-                    var result = farmGroups.Groups[0].Value;
-                    var regPattern2 = "(.htm\\\">)([\\s\\S]*?)(?=(<\\/a))";
-                    Console.WriteLine(result);
-                   
-                    var matches = Regex.Matches(result, regPattern2, RegexOptions.IgnoreCase);
-                    Console.WriteLine(matches.Count);
-                    
-                    foreach (Match m in matches)
-                    {
-                        farmG.Add(m.Groups[2].Value);
-                    }
+                pharmaGroup = regexSearch(req, pharmaGroupPattern1, pharmaGroupPattern2);
 
-                   Console.WriteLine(string.Join("\n",farmG)); 
-                }
+
+
+               // var p = pharmaGroup.Select(x => x.Where(y=> Char.IsLetter(y)? y: ' '));
+                Console.WriteLine(string.Join("\n", pharmaGroup));
+
+
             }
-
-            //try
-            //{
-            //    var pathMedCatalog = @"med\";
-
-            //    var KillList = File.ReadAllText(pathMedCatalog + "KillList.txt");
-            //    var GoodList = File.ReadAllText(pathMedCatalog + "GoodList.txt");
-
-            //    bool inKillList = Regex.Match(KillList, $"<li>{name}", RegexOptions.IgnoreCase).Success;
-            //    bool inGoodList = Regex.Match(GoodList, $"{name}", RegexOptions.IgnoreCase).Success;
-
-
-            //}
-            //catch (Exception)
-            //{
-
-            //}
-
         }
+        public static List<string> regexSearch(string context, string matchPattern, string matchesPattern)
+        {
 
+            var match = Regex.Match(context, matchPattern);
+            var matchess = Regex.Matches(match.Groups[0].Value, matchesPattern);
+
+            return matchess.Select(x => x.Groups[2].Value).ToList();
+        }
         static void Main(string[] args)
         {
            //TestMedFunctional();
-            MedTestByName("арбидол");
+            MedTestByName("ибупрофен");
         }
     }
 }
