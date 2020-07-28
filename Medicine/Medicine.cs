@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Medicine
@@ -68,6 +71,7 @@ namespace Medicine
                 return new bool[] { false, false };
             }
         }
+
     }
 
     /// <summary>
@@ -168,6 +172,27 @@ namespace Medicine
         /// Ёмкость упаковки в минимальных дозах.
         /// </summary>
         public float MinDoseCapacity{ get; private set; }
+
+        /// <summary>
+        /// Торговое наименование препарата.
+        /// </summary>
+        public List<string> TradeNameGroup { get; private set; }
+
+        /// <summary>
+        /// Действующие вещества, в составе препарата.
+        /// </summary>
+        public List<string> ActiveIngridients { get; private set; }
+
+        /// <summary>
+        /// Фармокологическая группа
+        /// </summary>
+        public List<string> PharmaGroup { get; private set; }
+
+        /// <summary>
+        /// Нозологическая классификация.
+        /// </summary>
+        public List<string> Nosological { get; private set; }
+
         /// <summary>
         /// Медикамент
         /// </summary>
@@ -178,23 +203,99 @@ namespace Medicine
         /// <param name="minDoseCapacity">Ёмкость упаковки в минимальных дозах.</param>
         public Med(string name, float price, string doseUnit, float minDose, float minDoseCapacity)
         {
-            this.Name = name;
-            this.Price = price;
-            this.DoseUnit = doseUnit;
-            this.MinDose = minDose;
-            this.MinDoseCapacity = minDoseCapacity;
+            Name = name;
+            Price = price;
+            DoseUnit = doseUnit;
+            MinDose = minDose;
+            MinDoseCapacity = minDoseCapacity;
+
+            TradeNameGroup = new List<string>();
+            ActiveIngridients = new List<string>();
+            PharmaGroup = new List<string>();
+            Nosological = new List<string>();
+            GetMedInfo();
         }
+
+        /// <summary>
+        /// Возвращает сайт в виде строки, кодировка win-1251
+        /// </summary>
+        static string GetHtml(string url)
+        {
+            try
+            {
+                WebClient wb = new WebClient();
+                wb.Encoding = Encoding.GetEncoding("Windows-1251");
+                return wb.DownloadString(url);
+            }
+            catch (Exception)
+            {
+
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Вспомогательный метод парсинга, рассчитанный на сайт www.rlsnet.ru.
+        /// </summary>
+        static List<string> RlsnetSearch(string context, string matchPattern)
+        {
+            var matchesPattern = "(.htm\\\">)([\\s\\S]*?)(?=(<\\/a))";
+            var match = Regex.Match(context, matchPattern);
+            var matchess = Regex.Matches(match.Groups[0].Value, matchesPattern);
+            return matchess.Select(x => WebUtility.HtmlDecode(Regex.Replace(x.Groups[2].Value, "<[^>]*(>|$)", " "))).ToList();
+        }
+
+        /// <summary>
+        /// Собирает основные данные препарата, используя сайт www.rlsnet.ru.
+        /// </summary
+        void GetMedInfo()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Encoding encoding = Encoding.GetEncoding("Windows-1251");
+
+            var uriName = string.Join("", encoding.GetBytes(Name).Select(c => Uri.HexEscape((char)c)));
+
+            var url = $"https://www.rlsnet.ru/search_result.htm?word={uriName}";
+
+            var reqGeneral = GetHtml(url);
+
+            bool reqOk = Regex.Match(reqGeneral, $"<div class=\"search_page_head\">").Success;
+
+            if (reqOk)
+            {
+                var pharmaGroupPattern = "в фармакологических группах([\\s\\S])*?(?=в нозологическом указателе)";
+                var activeIngridientsPattern = "в действующих веществах([\\s\\S])*?(?=в фармакологических группах)";
+                var tradeNameGroupPattern = "в торговых названиях([\\s\\S])*?(style)";
+
+                PharmaGroup = RlsnetSearch(reqGeneral, pharmaGroupPattern);
+                ActiveIngridients = RlsnetSearch(reqGeneral, activeIngridientsPattern);
+                TradeNameGroup = RlsnetSearch(reqGeneral, tradeNameGroupPattern);
+
+                var nosologicalPattern0 = "(в торговых названиях)[\\s\\S]*?href=\"\\/\\/([\\s\\S]*?)(\\\">)";
+                var nosologicalPattern1 = "(Нозологическая классификация)[\\s\\S]*?(<div)";
+
+                var reqMed = GetHtml($"https://{Regex.Match(reqGeneral, nosologicalPattern0).Groups[2].Value}");
+
+                Nosological = RlsnetSearch(reqMed, nosologicalPattern1);
+            }
+        }
+
         /// <summary>
         /// Общая сводка о препарате.
         /// </summary>
         /// <returns></returns>
         public string GetInfo()
         {
-            string info = 
+            string info =
                 $"Наименование: {Name}\n" +
                 $"Цена: {Price} руб\n" +
                 $"Минимальная доза: {MinDose} {DoseUnit}\n" +
-                $"Ёмкость: {MinDoseCapacity} {DoseUnit}\n";
+                $"Ёмкость: {MinDoseCapacity} {DoseUnit}\n" +
+                $"\nТорговые названия:\n{string.Join("\n", TradeNameGroup)}" +
+                $"\nФармокологические группы:\n{string.Join("\n", PharmaGroup)}" +
+                $"\nДействующие вещества:\n{string.Join("\n", ActiveIngridients)}" +
+                $"\nНозологическая классификация:\n{string.Join("\n", Nosological)}";
+
             return info;
         }
     }
