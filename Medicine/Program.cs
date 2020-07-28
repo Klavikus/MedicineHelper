@@ -37,7 +37,7 @@ namespace Medicine
             }
             return "";
         }
-        static void MedTestByName(string name)
+        static void MedInfoByName(string name)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Encoding encoding = Encoding.GetEncoding("Windows-1251");
@@ -46,44 +46,48 @@ namespace Medicine
 
             var url = $"https://www.rlsnet.ru/search_result.htm?word={uriName}";
 
-            var req = GetHtml(url);
-
-            bool reqOk = Regex.Match(req, $"<div class=\"search_page_head\">", RegexOptions.IgnoreCase).Success;
+            var reqGeneral = GetHtml(url);
 
             var tradeNameGroup = new List<string>();
             var activeIngridients = new List<string>();
             var pharmaGroup = new List<string>();
             var nosological = new List<string>();
 
+            bool reqOk = Regex.Match(reqGeneral, $"<div class=\"search_page_head\">").Success;
 
-           
             if (reqOk)
             {
-                var pharmaGroupPattern1 = "в фармакологических группах([\\s\\S])*?(?=в нозологическом указателе)";
-                var pharmaGroupPattern2 = "(.htm\\\">)([\\s\\S]*?)(?=(<\\/a))";
+                var pharmaGroupPattern = "в фармакологических группах([\\s\\S])*?(?=в нозологическом указателе)";
+                var activeIngridientsPattern = "в действующих веществах([\\s\\S])*?(?=в фармакологических группах)";
+                var tradeNameGroupPattern = "в торговых названиях([\\s\\S])*?(style)";
+               
+                pharmaGroup = regexSearch(reqGeneral, pharmaGroupPattern);
+                activeIngridients = regexSearch(reqGeneral, activeIngridientsPattern);
+                tradeNameGroup = regexSearch(reqGeneral, tradeNameGroupPattern);
 
-                pharmaGroup = regexSearch(req, pharmaGroupPattern1, pharmaGroupPattern2);
+                var nosologicalPattern0 = "(в торговых названиях)[\\s\\S]*?href=\"\\/\\/([\\s\\S]*?)(\\\">)";
+                var nosologicalPattern1 = "(Нозологическая классификация)[\\s\\S]*?(<div)";
+                var reqMed = GetHtml($"https://{Regex.Match(reqGeneral, nosologicalPattern0).Groups[2].Value}");
 
+                nosological = regexSearch(reqMed, nosologicalPattern1);
 
-
-               // var p = pharmaGroup.Select(x => x.Where(y=> Char.IsLetter(y)? y: ' '));
-                Console.WriteLine(string.Join("\n", pharmaGroup));
-
-
+                Console.WriteLine("\nТорговые названия:\n" + string.Join("\n", tradeNameGroup));
+                Console.WriteLine("\nФармокологические группы:\n" + string.Join("\n", pharmaGroup));
+                Console.WriteLine("\nДействующие вещества:\n" + string.Join("\n", activeIngridients));
+                Console.WriteLine("\nНозологическая классификация:\n" + string.Join("\n", nosological));
             }
         }
-        public static List<string> regexSearch(string context, string matchPattern, string matchesPattern)
+        static List<string> regexSearch(string context, string matchPattern)
         {
-
+            var matchesPattern = "(.htm\\\">)([\\s\\S]*?)(?=(<\\/a))";
             var match = Regex.Match(context, matchPattern);
             var matchess = Regex.Matches(match.Groups[0].Value, matchesPattern);
-
-            return matchess.Select(x => x.Groups[2].Value).ToList();
+            return matchess.Select(x => WebUtility.HtmlDecode(Regex.Replace(x.Groups[2].Value, "<[^>]*(>|$)", " "))).ToList();
         }
         static void Main(string[] args)
         {
-           //TestMedFunctional();
-            MedTestByName("ибупрофен");
+            //TestMedFunctional();
+            MedInfoByName("оциллококцинум");
         }
     }
 }
