@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace Medicine
 {
+    //TODO: Реализовать проверку корректности ввода информации.
     /// <summary>
     /// Дополнительные методы работы с препаратом.
     /// </summary>
@@ -22,15 +23,25 @@ namespace Medicine
     public class CourseDistributer
     {
         /// <summary>
+        /// Курс препарата.
+        /// </summary>
+        public MedCourse Course { get; private set; }
+
+        /// <summary>
         /// Статус нахождения в расстрельном списке и списке жизненно необходимых препаратов.
         /// </summary>
         public bool[] MedStatus { get; private set; }
 
         /// <summary>
-        /// Курс препарата.
+        /// Дата начала курса.
         /// </summary>
-        public MedCourse Course { get; private set;}
-        
+        public DateTime startCourseDay { get; set; }
+
+        /// <summary>
+        /// Распределения курса, по конкретным датам.
+        /// </summary>
+        public Dictionary<DateTime, Dictionary<double, double>> CourseByDateTime { get; set; }
+
         /// <summary>
         /// Конструктор распределения курса.
         /// </summary>
@@ -87,6 +98,46 @@ namespace Medicine
                 return new bool[] { false, false };
             }
         }
+
+        /// <summary>
+        /// Распределяет курс препарата, в соответствии со стартовой датой.
+        /// </summary>
+        public void DistributeCourseByData()
+        {
+            //TODO: Упростить через итератор.
+            var tempRes = new Dictionary<DateTime, Dictionary<double, double>>();
+            var data = new DateTime(startCourseDay.Year, startCourseDay.Month, startCourseDay.Day);
+            foreach (var day in Course.CourseDayDistribution)
+                tempRes.Add(data.AddDays(day.Key - 1), day.Value);
+            CourseByDateTime = tempRes;
+        }
+
+        /// <summary>
+        /// Возвращает расписание приёма препарата в заданный день.
+        /// </summary>
+        public Dictionary<DateTime, double> GetShedule(DateTime day)
+        {
+            //TODO: Упростить преобразование даты
+            var result = new DateTime(day.Year, day.Month, day.Day);
+            var resDict = new Dictionary<DateTime, double>();
+
+            if (CourseByDateTime.ContainsKey(result))
+            {
+                var d = CourseByDateTime[result];
+                foreach (var period in d)
+                {
+                    resDict.Add(result.AddHours(period.Key), period.Value);
+                }
+            }
+
+            foreach (var item in resDict)
+            {
+                Console.WriteLine($"Время приёма: {item.Key}  кол-во препарата: {item.Value}");
+            }
+
+            return resDict;
+        }
+
     }
 
     /// <summary>
@@ -105,12 +156,12 @@ namespace Medicine
         public float DayDose { get; set; }
 
         /// <summary>
-        /// Распределение дозы в течении суток ("Время приёма":"Кол-во минимальных дозах")
+        /// Распределение дозы в течении суток ("Время приёма в часах":"Кол-во минимальных дозах")
         /// </summary>
         public Dictionary<double, double> DayDoseDistr { get; set; }
 
         /// <summary>
-        /// Распределение дозы в течении суток ("Время приёма":"Кол-во в минимальных дозах")
+        /// Распределение дозы в течении суток ("Время приёма в часах":"Кол-во в минимальных дозах")
         /// </summary>
         public Dictionary<double, double> Dose { get; set; }
 
@@ -128,19 +179,6 @@ namespace Medicine
         /// Распределение дневных доз, по рассчитаным дням приёма.
         /// </summary>
         public Dictionary<int, Dictionary<double, double>> CourseDayDistribution { get; private set; }
-
-        /// <summary>
-        /// Начальная инициализация объекта класса, требует выполнение метода CalculateCourse().
-        /// </summary>
-        public MedCourse()
-        {
-            this.Medicine = new Med();
-            this.DayDose = 0;
-            this.DayDoseDistr = new Dictionary<double, double>();
-            this.CourseDayInterval = 0;
-            this.CourseDayPattern = new int[] { };
-            this.CourseDayDistribution = new Dictionary<int, Dictionary<double, double>>();
-        }
 
         /// <summary>
         /// Возвращает массив дней приёма препарата.
@@ -173,8 +211,9 @@ namespace Medicine
         /// </summary>
         private void DistribDoseByDay()
         {
+            CourseDayDistribution = new Dictionary<int, Dictionary<double, double>>();
             foreach (var day in DistribSeqByDay())
-                this.CourseDayDistribution.Add(day, this.Dose);
+               CourseDayDistribution.Add(day, this.Dose);
         }
 
         /// <summary>
@@ -245,28 +284,6 @@ namespace Medicine
         /// Нозологическая классификация.
         /// </summary>
         public List<string> Nosological { get; private set; }
-
-        /// <summary>
-        /// Медикамент
-        /// </summary>
-        /// <param name="name">Наименование препарата.</param>
-        /// <param name="price">Стоимость перпарата в рублях.</param>
-        /// <param name="doseUnit">Единицы дозирования (мг/таб/т.д.)</param>
-        /// <param name="minDose">Минимальная расфасованная доза.</param>
-        /// <param name="minDoseCapacity">Ёмкость упаковки в минимальных дозах.</param>
-        public Med()
-        {
-            Name = string.Empty;
-            Price = 0;
-            DoseUnit = string.Empty;
-            MinDose = 0;
-            MinDoseCapacity = 0;
-
-            TradeNameGroup = new List<string>();
-            ActiveIngridients = new List<string>();
-            PharmaGroup = new List<string>();
-            Nosological = new List<string>();
-        }
 
         /// <summary>
         /// Возвращает сайт в виде строки, кодировка win-1251

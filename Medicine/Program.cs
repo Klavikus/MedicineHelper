@@ -30,22 +30,20 @@ namespace Medicine
             medCourse.DayDose = 18;
             medCourse.DayDoseDistr = new Dictionary<double, double>() { { 8, 9 }, { 10, 5 }, { 11, 4 } };
             medCourse.CourseDayInterval = 14;
-            medCourse.CourseDayPattern = new int[] { 0 };
+            medCourse.CourseDayPattern = new int[] { 1 };
             medCourse.CalculateCourse();
 
             CourseDistributer distributedCourse = new CourseDistributer(medCourse);
-
+            distributedCourse.startCourseDay = DateTime.Now;
+            distributedCourse.DistributeCourseByData();
             distributedCourse.PrintInfo();
 
-            /*
-             * TODO:
-             * 1. Реализовать проверку корректности ввода информации, 
-             * при создании экземпляров Med, MedCourse, CourseDistributer.
-             * 2. Добавить привязку распределения курса к определённой дате.
-             * 3. Добавить возможность проверки\хранения статуса выполнения курса.
-             * 4. Добавить поддержку работы с БД.
-             * 5. Добавить возможность обновления проверочных списков.
-             */
+
+            for (int i = 0; i < 14; i++)
+            {
+                distributedCourse.GetShedule(DateTime.Now.AddDays(i));
+            }
+            
         }
 
         static void Main(string[] args)
