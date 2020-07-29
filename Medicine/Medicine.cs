@@ -137,7 +137,6 @@ namespace Medicine
 
             return resDict;
         }
-
     }
 
     /// <summary>
@@ -160,10 +159,10 @@ namespace Medicine
         /// </summary>
         public Dictionary<double, double> DayDoseDistr { get; set; }
 
-        /// <summary>
-        /// Распределение дозы в течении суток ("Время приёма в часах":"Кол-во в минимальных дозах")
-        /// </summary>
-        public Dictionary<double, double> Dose { get; set; }
+        ///// <summary>
+        ///// Распределение дозы в течении суток ("Время приёма в часах":"Кол-во в минимальных дозах")
+        ///// </summary>
+        //public Dictionary<double, double> Dose { get; set; }
 
         /// <summary>
         /// Длительность курса в днях.
@@ -213,28 +212,15 @@ namespace Medicine
         {
             CourseDayDistribution = new Dictionary<int, Dictionary<double, double>>();
             foreach (var day in DistribSeqByDay())
-               CourseDayDistribution.Add(day, this.Dose);
+               CourseDayDistribution.Add(day, this.DayDoseDistr);
         }
 
-        /// <summary>
-        /// Формирование распределения дневной дозы в течении дня.
-        /// </summary>
-        private void CalculateDayDose()
-        {
-            var tempDict = new Dictionary<double, double>();
-            foreach (var dose in DayDoseDistr)
-            {
-                tempDict.Add(dose.Key, dose.Value);
-            }
-            Dose = tempDict;
-        }
 
         /// <summary>
         /// Завершение конструирования модели курса.
         /// </summary>
         public void CalculateCourse()
         {
-            this.CalculateDayDose();
             this.DistribDoseByDay();
         }
     }

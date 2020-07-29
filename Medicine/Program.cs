@@ -38,7 +38,7 @@ namespace Medicine
             distributedCourse.DistributeCourseByData();
             distributedCourse.PrintInfo();
 
-
+            var a = distributedCourse.CourseByDateTime;
             for (int i = 0; i < 14; i++)
             {
                 distributedCourse.GetShedule(DateTime.Now.AddDays(i));
