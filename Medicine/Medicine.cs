@@ -22,6 +22,7 @@ namespace Medicine
     /// </summary>
     public class CourseDistributer
     {
+        public Guid Guid { get; set; }
         /// <summary>
         /// Курс препарата.
         /// </summary>
@@ -144,6 +145,12 @@ namespace Medicine
     /// </summary>
     public class MedCourse
     {
+        public Guid Guid { get;  set; }
+        /// <summary>
+        /// Шаг отмены препарата в соответствии с дневным распределением.
+        /// </summary>
+        public double[] DayDoseDeltaDistr { get; set; }
+
         /// <summary>
         /// Препарат.
         /// </summary>
@@ -215,6 +222,11 @@ namespace Medicine
                CourseDayDistribution.Add(day, this.DayDoseDistr);
         }
 
+        private void CalculateCancelDose()
+        {
+            // TODO: Реализовать отмену препарата.
+        }
+
 
         /// <summary>
         /// Завершение конструирования модели курса.
@@ -230,6 +242,7 @@ namespace Medicine
     /// </summary>
     public class Med
     {
+        public Guid Guid { get; set; }
         /// <summary>
         /// Название препарата.
         /// </summary>
