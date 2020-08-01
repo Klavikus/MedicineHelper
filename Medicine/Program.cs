@@ -6,6 +6,8 @@ using System.Web;
 using System.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
+using Telegram.Bot;
+using Medicine.bot;
 
 namespace Medicine
 {
@@ -45,9 +47,7 @@ namespace Medicine
 
             }
         }
-
-
-            static void TestMedFunctional()
+        static void TestMedFunctional()
         {
             Med med = new Med();
 
@@ -89,8 +89,11 @@ namespace Medicine
 
         static void Main(string[] args)
         {
-            
-            TestMedFunctional();
+            var mBot = new MedBot();
+            mBot.Start();
+
+            Console.ReadLine();
+           // TestMedFunctional();
         }
     }
 }
