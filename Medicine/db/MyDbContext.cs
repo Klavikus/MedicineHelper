@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Medicine.db;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Text;
@@ -15,5 +16,7 @@ namespace Medicine
         }
 
         public DbSet<Shedule> Shedule { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<MessageLog> Messages { get; set; }
     }
 }

@@ -91,8 +91,13 @@ namespace Medicine
         {
             var mBot = new MedBot();
             mBot.Start();
+            while (true)
+            {
 
-            Console.ReadLine();
+            }
+  
+
+          
            // TestMedFunctional();
         }
     }

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Telegram.Bot;
-
+using static Medicine.db.DbUtils;
 namespace Medicine.bot
 {
     public class MedBot
@@ -34,17 +34,16 @@ namespace Medicine.bot
                 var commands = new List<BotCommand>();
                 commands.Add(new StartCommand());
                 commands.Add(new TestMedPrep());
-                if (!userMesseges.ContainsKey(fromId)) userMesseges.Add(fromId, new List<string>() { });
 
-                userMesseges[fromId].Add(msg);
+                LogMessage(w.Message);
 
                 foreach (var command in commands)
-                    if (command.Contains(w.Message))
+                    if (command.Contains(w.Message) || GetLastCommand(fromId) == command.CommandId)
                     {
+                       // SaveUserLastComm(w.Message, command.CommandId);
                         command.Execute(w.Message, this);
                         break;
                     }
-
             };
 
             bot.StartReceiving();
