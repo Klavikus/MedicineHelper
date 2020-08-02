@@ -57,6 +57,7 @@ namespace Medicine.db
             using (var context = new MyDbContext())
             {
                 var a = context.Users.Where(x => x.UserId == userId).FirstOrDefault();
+                if (a == null) return -1;
                 return a.LastCommandIndex;
             }
         }

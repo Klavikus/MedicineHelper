@@ -4,19 +4,22 @@ using System.Collections.Generic;
 using System.Text;
 using Telegram.Bot;
 using static Medicine.db.DbUtils;
+
+using Microsoft.Extensions.Configuration;
+
 namespace Medicine.bot
 {
     public class MedBot
     {
-        string token = "1359474265:AAFbkins09o1Ux4vmjWFwByBTa2ypYqNL90";
+        
 
         public TelegramBotClient bot;
 
         public Dictionary<long, List<string>> userMesseges;
 
-        public MedBot()
+        public MedBot(IConfiguration configuration)
         {
-            bot = new TelegramBotClient(token);
+            bot = new TelegramBotClient(configuration["token"]);
             userMesseges = new Dictionary<long, List<string>>();
         }
 
@@ -40,7 +43,6 @@ namespace Medicine.bot
                 foreach (var command in commands)
                     if (command.Contains(w.Message) || GetLastCommand(fromId) == command.CommandId)
                     {
-                       // SaveUserLastComm(w.Message, command.CommandId);
                         command.Execute(w.Message, this);
                         break;
                     }

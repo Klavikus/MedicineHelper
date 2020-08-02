@@ -8,6 +8,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Telegram.Bot;
 using Medicine.bot;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 
 namespace Medicine
 {
@@ -89,16 +91,16 @@ namespace Medicine
 
         static void Main(string[] args)
         {
-            var mBot = new MedBot();
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var mBot = new MedBot(configuration);
             mBot.Start();
             while (true)
             {
 
             }
-  
-
-          
-           // TestMedFunctional();
         }
     }
 }
